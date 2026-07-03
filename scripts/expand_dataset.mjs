@@ -46,7 +46,6 @@ const templates = {
     "how old is {celebrity}",
     "distance to {place}"
   ],
-  // New Categories added from user feedback
   live_data: [
     "Live score of the {team1} vs {team2} match",
     "Current stock price of {company}",
@@ -88,6 +87,19 @@ const templates = {
     "TripAdvisor photos of the {hotel}",
     "Stack Overflow thread for {software} error 404",
     "Unboxing video for the {product}"
+  ],
+  // New Categories for Easily Surfed internet queries
+  easily_surfed: [
+    "how to {action} {item}",
+    "top 10 {topCategory} in {year}",
+    "lyrics for {song} by {artist}",
+    "what is the cast of {movie}",
+    "when is {holiday} {year}",
+    "best {food} recipe",
+    "how long to cook {food}",
+    "who won the {sports_event} in {year}",
+    "specs for {product}",
+    "is {movie} streaming on Netflix"
   ]
 };
 
@@ -108,52 +120,34 @@ const data = {
   formNumber: ["1040", "W-2", "1099", "I-9"],
   store: ["Best Buy", "Walmart", "gas station", "grocery store", "Target"],
   restaurant: ["Mario's Italian Restaurant", "Joe's Pizza", "Sushi Nakazawa"],
-  movie: ["Dune 2", "Oppenheimer", "Barbie", "Spider-Man"],
+  movie: ["Dune 2", "Oppenheimer", "Barbie", "Spider-Man", "The Matrix", "Inception"],
   service: ["pharmacies", "dentists", "urgent care", "hospitals"],
   insurance: ["BlueCross", "Aetna", "Cigna", "UnitedHealthcare"],
   airport1: ["JFK", "LAX", "ORD"],
   airport2: ["LHR", "CDG", "HND"],
-  product: ["PlayStation 5", "Samsung Galaxy S24 Ultra", "Dyson vacuum", "DJI Mini 4 Pro"],
+  product: ["PlayStation 5", "Samsung Galaxy S24 Ultra", "Dyson vacuum", "DJI Mini 4 Pro", "MacBook Pro"],
   courier: ["FedEx", "UPS", "USPS", "DHL"],
   trackingNumber: ["123456789", "987654321", "1Z9999999999999999"],
   lawDocument: ["Digital Markets Act", "GDPR", "Clean Air Act"],
   healthCondition: ["food poisoning", "covid-19", "flu", "allergies"],
   state: ["California", "New York", "Texas", "Florida"],
   legalTopic: ["copyright", "free speech", "patent law"],
-  hotel: ["Hilton Cancun", "Marriott Maui", "Four Seasons Paris"]
+  hotel: ["Hilton Cancun", "Marriott Maui", "Four Seasons Paris"],
+  // Easily surfed variables
+  action: ["tie", "boil", "screenshot on", "clean", "reset"],
+  item: ["a tie", "an egg", "mac", "a washing machine", "iphone"],
+  topCategory: ["movies", "songs", "books", "games"],
+  year: ["2023", "2024", "1999", "2010"],
+  song: ["Bohemian Rhapsody", "Shape of You", "Hotel California", "Imagine"],
+  artist: ["Queen", "Ed Sheeran", "Eagles", "John Lennon"],
+  holiday: ["Thanksgiving", "Easter", "Halloween", "Mother's Day"],
+  food: ["lasagna", "chocolate chip cookies", "steak", "chicken breast"],
+  sports_event: ["Super Bowl", "World Cup", "World Series", "Wimbledon"]
 };
 
 const dataset = new Set();
 
 function generate() {
-  // Existing loops
-  for (const t of templates.math) {
-    for (const n1 of data.n1) {
-      for (const n2 of data.n2.slice(0, 3)) dataset.add(t.replace("{n1}", n1).replace("{n2}", n2));
-    }
-  }
-  for (const t of templates.conversion) {
-    for (const n1 of data.n1) dataset.add(t.replace("{n1}", n1));
-  }
-  for (const t of templates.trivia) {
-    for (const c of data.country) dataset.add(t.replace("{country}", c));
-  }
-  for (const t of templates.language) {
-    for (const w of data.word) {
-      if (t.includes("{lang}")) {
-        for (const l of data.lang.slice(0, 3)) dataset.add(t.replace("{word}", w).replace("{lang}", l));
-      } else {
-        dataset.add(t.replace("{word}", w));
-      }
-    }
-  }
-  for (const t of templates.quick) {
-    if (t.includes("{city}")) for (const c of data.city) dataset.add(t.replace("{city}", c));
-    else if (t.includes("{company}")) for (const c of data.company) dataset.add(t.replace("{company}", c));
-    else if (t.includes("{celebrity}")) for (const c of data.celebrity) dataset.add(t.replace("{celebrity}", c));
-    else if (t.includes("{place}")) for (const c of data.place) dataset.add(t.replace("{place}", c));
-  }
-
   // Helper to replace multiple placeholders in a string
   const applyData = (template, replacements) => {
     let res = template;
@@ -164,13 +158,10 @@ function generate() {
   };
 
   // Helper to process arrays of templates with dynamic variables
-  const processTemplates = (templateArray, variablesToLoop) => {
+  const processTemplates = (templateArray) => {
     for (const t of templateArray) {
-      // Find all placeholders in this template
       const placeholders = [...t.matchAll(/{(\w+)}/g)].map(m => m[1]);
       
-      // We will do a basic combination. To avoid blowing up, if there are multiple placeholders,
-      // we take a cross product but limit to a small subset.
       if (placeholders.length === 1) {
         const p = placeholders[0];
         for (const val of (data[p] || [])) {
@@ -179,8 +170,9 @@ function generate() {
       } else if (placeholders.length === 2) {
         const p1 = placeholders[0];
         const p2 = placeholders[1];
-        for (const v1 of (data[p1] || []).slice(0, 3)) {
-          for (const v2 of (data[p2] || []).slice(0, 3)) {
+        // Slice to 4 elements max per array to avoid exponential explosion
+        for (const v1 of (data[p1] || []).slice(0, 4)) {
+          for (const v2 of (data[p2] || []).slice(0, 4)) {
             dataset.add(applyData(t, { [p1]: v1, [p2]: v2 }));
           }
         }
@@ -190,12 +182,18 @@ function generate() {
     }
   };
 
+  processTemplates(templates.math);
+  processTemplates(templates.conversion);
+  processTemplates(templates.trivia);
+  processTemplates(templates.language);
+  processTemplates(templates.quick);
   processTemplates(templates.live_data);
   processTemplates(templates.navigational);
   processTemplates(templates.local_proximity);
   processTemplates(templates.shopping_inventory);
   processTemplates(templates.primary_sources);
   processTemplates(templates.human_experience);
+  processTemplates(templates.easily_surfed);
 
   // Add some specific edge cases
   const edgeCases = [
@@ -204,7 +202,11 @@ function generate() {
     "what is the fastest land animal",
     "how many planets in the solar system",
     "is a tomato a fruit or a vegetable",
-    "who painted the mona lisa"
+    "who painted the mona lisa",
+    "what time is the sunset today",
+    "how many calories in an apple",
+    "how to delete instagram account",
+    "what channel is the news on"
   ];
   edgeCases.forEach(e => dataset.add(e));
 }
