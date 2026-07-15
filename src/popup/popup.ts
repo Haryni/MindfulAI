@@ -107,7 +107,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (status === 'ready') {
       modelBadge.innerText = 'Ready';
       modelBadge.classList.add('badge-ready');
-      modelDetails.innerText = 'Ready for local AI classification (22MB DeBERTa)';
+      modelDetails.innerText = 'AI is ready and running locally on your device.';
       modelProgressContainer.style.display = 'none';
       modelDownloadBtn.style.display = 'none';
     } 
@@ -115,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (status === 'downloading') {
       modelBadge.innerText = `Downloading ${progress}%`;
       modelBadge.classList.add('badge-downloading');
-      modelDetails.innerText = 'Downloading model files... (approx. 22MB)';
+      modelDetails.innerText = 'Downloading AI engine... (This happens only once)';
       modelProgressContainer.style.display = 'block';
       modelProgressBar.style.width = `${progress}%`;
       modelDownloadBtn.style.display = 'block';
@@ -126,21 +126,21 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (status === 'error') {
       modelBadge.innerText = 'Error';
       modelBadge.classList.add('badge-error');
-      modelDetails.innerText = 'Assets download failed. Please check network connections.';
+      modelDetails.innerText = 'Could not download the AI engine. Please check your internet.';
       modelProgressContainer.style.display = 'none';
       modelDownloadBtn.style.display = 'block';
       modelDownloadBtn.disabled = false;
-      modelDownloadBtn.innerText = 'Retry Download';
+      modelDownloadBtn.innerText = 'Try Again';
     } 
     
     else { // idle
-      modelBadge.innerText = 'Idle';
+      modelBadge.innerText = 'Not Ready';
       modelBadge.classList.add('badge-idle');
-      modelDetails.innerText = 'Zero-shot AI model not loaded. Using local regex rule engine.';
+      modelDetails.innerText = 'Basic filtering is on. Download the AI engine for smarter filtering.';
       modelProgressContainer.style.display = 'none';
       modelDownloadBtn.style.display = 'block';
       modelDownloadBtn.disabled = false;
-      modelDownloadBtn.innerText = 'Load AI Model (Client-Side)';
+      modelDownloadBtn.innerText = 'Download AI Engine';
     }
   }
 });
