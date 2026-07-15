@@ -170,9 +170,9 @@ function generate() {
       } else if (placeholders.length === 2) {
         const p1 = placeholders[0];
         const p2 = placeholders[1];
-        // Slice to 4 elements max per array to avoid exponential explosion
-        for (const v1 of (data[p1] || []).slice(0, 4)) {
-          for (const v2 of (data[p2] || []).slice(0, 4)) {
+        // Use all elements to increase dataset size and model effectiveness
+        for (const v1 of (data[p1] || [])) {
+          for (const v2 of (data[p2] || [])) {
             dataset.add(applyData(t, { [p1]: v1, [p2]: v2 }));
           }
         }
