@@ -9,6 +9,10 @@ document.addEventListener('DOMContentLoaded', () => {
   const toggleShield = document.getElementById('toggle-shield') as HTMLInputElement;
   const toggleMl = document.getElementById('toggle-ml') as HTMLInputElement;
   
+  const toggleChatgpt = document.getElementById('toggle-chatgpt') as HTMLInputElement;
+  const toggleClaude = document.getElementById('toggle-claude') as HTMLInputElement;
+  const toggleGemini = document.getElementById('toggle-gemini') as HTMLInputElement;
+  
   const sensitivitySlider = document.getElementById('sensitivity-slider') as HTMLInputElement;
   const sensitivityDisplay = document.getElementById('sensitivity-display')!;
   
@@ -23,6 +27,9 @@ document.addEventListener('DOMContentLoaded', () => {
     'ecoPromptEnabled',
     'mlClassificationEnabled',
     'sensitivityThreshold',
+    'enableChatgpt',
+    'enableClaude',
+    'enableGemini',
     'queriesDiverted',
     'tokensSaved',
     'co2Saved',
@@ -38,7 +45,11 @@ document.addEventListener('DOMContentLoaded', () => {
     toggleShield.checked = res.ecoPromptEnabled !== false; // default true
     toggleMl.checked = res.mlClassificationEnabled !== false; // default true
     
-    const sensitivity = res.sensitivityThreshold !== undefined ? res.sensitivityThreshold : 0.6;
+    toggleChatgpt.checked = res.enableChatgpt !== false;
+    toggleClaude.checked = res.enableClaude !== false;
+    toggleGemini.checked = res.enableGemini !== false;
+    
+    const sensitivity = res.sensitivityThreshold !== undefined ? res.sensitivityThreshold : 0.45;
     sensitivitySlider.value = String(sensitivity);
     sensitivityDisplay.innerText = Number(sensitivity).toFixed(2);
 
@@ -77,6 +88,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   toggleMl.onchange = () => {
     chrome.storage.local.set({ mlClassificationEnabled: toggleMl.checked });
+  };
+  
+  toggleChatgpt.onchange = () => {
+    chrome.storage.local.set({ enableChatgpt: toggleChatgpt.checked });
+  };
+  
+  toggleClaude.onchange = () => {
+    chrome.storage.local.set({ enableClaude: toggleClaude.checked });
+  };
+  
+  toggleGemini.onchange = () => {
+    chrome.storage.local.set({ enableGemini: toggleGemini.checked });
   };
 
   sensitivitySlider.oninput = () => {

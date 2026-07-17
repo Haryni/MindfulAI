@@ -363,9 +363,39 @@
     <div class="range-container">
       <div class="range-header">
         <span class="control-label" style="font-size: 12px;">Filtering Strictness</span>
-        <span class="control-label" style="font-size: 12px; color: var(--accent-green);" id="sensitivity-display">0.60</span>
+        <span class="control-label" style="font-size: 12px; color: var(--accent-green);" id="sensitivity-display">0.45</span>
       </div>
-      <input type="range" class="range-input" id="sensitivity-slider" min="0.3" max="0.9" step="0.05" value="0.6">
+      <input type="range" class="range-input" id="sensitivity-slider" min="0.3" max="0.9" step="0.05" value="0.45">
+    </div>
+
+    <!-- AI Tools Restrictions -->
+    <div class="control-label" style="margin-top: 8px;">Active AI Platforms</div>
+    <div class="control-row" style="margin-bottom: 4px;">
+      <div class="control-text">
+        <div class="control-desc" style="font-weight: 500;">ChatGPT</div>
+      </div>
+      <label class="switch" style="transform: scale(0.8); transform-origin: right;">
+        <input type="checkbox" id="toggle-chatgpt" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="control-row" style="margin-bottom: 4px;">
+      <div class="control-text">
+        <div class="control-desc" style="font-weight: 500;">Claude</div>
+      </div>
+      <label class="switch" style="transform: scale(0.8); transform-origin: right;">
+        <input type="checkbox" id="toggle-claude" checked>
+        <span class="slider"></span>
+      </label>
+    </div>
+    <div class="control-row">
+      <div class="control-text">
+        <div class="control-desc" style="font-weight: 500;">Gemini</div>
+      </div>
+      <label class="switch" style="transform: scale(0.8); transform-origin: right;">
+        <input type="checkbox" id="toggle-gemini" checked>
+        <span class="slider"></span>
+      </label>
     </div>
   </div>
 
