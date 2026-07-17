@@ -9,7 +9,7 @@ chrome.runtime.onInstalled.addListener(async () => {
   const defaults = {
     ecoPromptEnabled: true,
     mlClassificationEnabled: true,
-    sensitivityThreshold: 0.6,
+    sensitivityThreshold: 0.45,
     queriesDiverted: 0,
     tokensSaved: 0,
     co2Saved: 0.0,
@@ -188,11 +188,15 @@ async function handleClassification(text: string) {
       'math calculation or arithmetic',
       'simple web search or factual query',
       'basic question with a straightforward answer',
-      'task that does not require AI generation'
+      'task that does not require AI generation',
+      'unit conversion or translation',
+      'request for simple instructions'
     ];
     const complexLabels = [
       'complex task requiring AI generation or deep reasoning',
-      'creative writing, coding, or brainstorming'
+      'creative writing, coding, or brainstorming',
+      'summarization of a long text',
+      'detailed analysis or comparative review'
     ];
     
     const candidateLabels = [...simpleLabels, ...complexLabels];
@@ -207,7 +211,7 @@ async function handleClassification(text: string) {
       }
     }
     
-    const threshold = settings.sensitivityThreshold || 0.6;
+    const threshold = settings.sensitivityThreshold !== undefined ? settings.sensitivityThreshold : 0.45;
     const intercept = simpleScore >= threshold;
     
     return {
