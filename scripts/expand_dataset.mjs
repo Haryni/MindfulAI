@@ -99,7 +99,12 @@ const templates = {
     "how long to cook {food}",
     "who won the {sports_event} in {year}",
     "specs for {product}",
-    "is {movie} streaming on Netflix"
+    "is {movie} streaming on Netflix",
+    "how to fix {product} error",
+    "what is the weather like in {city} next week",
+    "difference between {product} and {product}",
+    "what is the latest episode of {movie}",
+    "who is the author of {book}"
   ]
 };
 
@@ -141,8 +146,9 @@ const data = {
   song: ["Bohemian Rhapsody", "Shape of You", "Hotel California", "Imagine"],
   artist: ["Queen", "Ed Sheeran", "Eagles", "John Lennon"],
   holiday: ["Thanksgiving", "Easter", "Halloween", "Mother's Day"],
-  food: ["lasagna", "chocolate chip cookies", "steak", "chicken breast"],
-  sports_event: ["Super Bowl", "World Cup", "World Series", "Wimbledon"]
+  food: ["lasagna", "chocolate chip cookies", "steak", "chicken breast", "spaghetti", "pizza"],
+  sports_event: ["Super Bowl", "World Cup", "World Series", "Wimbledon", "Olympics"],
+  book: ["Harry Potter", "The Hobbit", "1984", "To Kill a Mockingbird", "Pride and Prejudice"]
 };
 
 const dataset = new Set();
@@ -205,8 +211,17 @@ function generate() {
     "who painted the mona lisa",
     "what time is the sunset today",
     "how many calories in an apple",
-    "how to delete instagram account",
-    "what channel is the news on"
+    "what channel is the news on",
+    "how to reset wifi router",
+    "what to do if my sink is clogged",
+    "why is the sky blue",
+    "how to boil an egg",
+    "when is the next leap year",
+    "what is the capital of the US",
+    "how to tie a tie",
+    "how many feet in a mile",
+    "is water wet",
+    "what is the meaning of life"
   ];
   edgeCases.forEach(e => dataset.add(e));
 }
