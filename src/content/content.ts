@@ -8,14 +8,20 @@ const bypassedElements = new WeakSet<HTMLElement>();
 let settings = {
   ecoPromptEnabled: true,
   mlClassificationEnabled: true,
-  sensitivityThreshold: 0.45, // lowered default so more short simple queries are caught
+  sensitivityThreshold: 0.45,
+  enableChatgpt: true,
+  enableClaude: true,
+  enableGemini: true,
 };
 
 // Initial settings load
-chrome.storage.local.get(['ecoPromptEnabled', 'mlClassificationEnabled', 'sensitivityThreshold'], (res) => {
+chrome.storage.local.get(['ecoPromptEnabled', 'mlClassificationEnabled', 'sensitivityThreshold', 'enableChatgpt', 'enableClaude', 'enableGemini'], (res) => {
   if (res.ecoPromptEnabled !== undefined) settings.ecoPromptEnabled = res.ecoPromptEnabled;
   if (res.mlClassificationEnabled !== undefined) settings.mlClassificationEnabled = res.mlClassificationEnabled;
   if (res.sensitivityThreshold !== undefined) settings.sensitivityThreshold = res.sensitivityThreshold;
+  if (res.enableChatgpt !== undefined) settings.enableChatgpt = res.enableChatgpt;
+  if (res.enableClaude !== undefined) settings.enableClaude = res.enableClaude;
+  if (res.enableGemini !== undefined) settings.enableGemini = res.enableGemini;
 });
 
 // Update settings when they change in storage
@@ -24,8 +30,25 @@ chrome.storage.onChanged.addListener((changes, area) => {
     if (changes.ecoPromptEnabled) settings.ecoPromptEnabled = changes.ecoPromptEnabled.newValue;
     if (changes.mlClassificationEnabled) settings.mlClassificationEnabled = changes.mlClassificationEnabled.newValue;
     if (changes.sensitivityThreshold) settings.sensitivityThreshold = changes.sensitivityThreshold.newValue;
+    if (changes.enableChatgpt) settings.enableChatgpt = changes.enableChatgpt.newValue;
+    if (changes.enableClaude) settings.enableClaude = changes.enableClaude.newValue;
+    if (changes.enableGemini) settings.enableGemini = changes.enableGemini.newValue;
   }
 });
+
+// Detect current AI platform
+const hostname = window.location.hostname;
+let currentPlatform = '';
+if (hostname.includes('chatgpt.com')) currentPlatform = 'chatgpt';
+else if (hostname.includes('claude.ai')) currentPlatform = 'claude';
+else if (hostname.includes('gemini.google.com')) currentPlatform = 'gemini';
+
+function isCurrentPlatformEnabled(): boolean {
+  if (currentPlatform === 'chatgpt') return settings.enableChatgpt;
+  if (currentPlatform === 'claude') return settings.enableClaude;
+  if (currentPlatform === 'gemini') return settings.enableGemini;
+  return true; // Default to true for unknown platforms if they somehow get injected
+}
 
 // ===========================================================
 // ROBUST ELEMENT DETECTION
@@ -143,7 +166,7 @@ document.addEventListener('click', handleClick, true);
 document.addEventListener('pointerdown', handlePointerDown, true);
 
 function handleKeyDown(e: KeyboardEvent) {
-  if (!settings.ecoPromptEnabled) return;
+  if (!settings.ecoPromptEnabled || !isCurrentPlatformEnabled()) return;
 
   if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
 
@@ -162,7 +185,7 @@ function handleKeyDown(e: KeyboardEvent) {
 
 function handlePointerDown(e: PointerEvent) {
   // pointerdown fires before click, giving us first crack at button presses
-  if (!settings.ecoPromptEnabled) return;
+  if (!settings.ecoPromptEnabled || !isCurrentPlatformEnabled()) return;
 
   const target = e.target as HTMLElement;
   const button = target.closest('button') as HTMLButtonElement | null;
@@ -185,7 +208,7 @@ function handlePointerDown(e: PointerEvent) {
 }
 
 function handleClick(e: MouseEvent) {
-  if (!settings.ecoPromptEnabled) return;
+  if (!settings.ecoPromptEnabled || !isCurrentPlatformEnabled()) return;
 
   const target = e.target as HTMLElement;
   const button = target.closest('button') as HTMLButtonElement | null;
