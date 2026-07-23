@@ -105,6 +105,19 @@ const templates = {
     "difference between {product} and {product}",
     "what is the latest episode of {movie}",
     "who is the author of {book}"
+  ],
+  chitchat: [
+    "hello",
+    "hi",
+    "hey",
+    "good morning",
+    "good evening",
+    "how are you",
+    "who are you",
+    "are you there",
+    "test",
+    "testing",
+    "what is your name"
   ]
 };
 
@@ -200,6 +213,7 @@ function generate() {
   processTemplates(templates.primary_sources);
   processTemplates(templates.human_experience);
   processTemplates(templates.easily_surfed);
+  processTemplates(templates.chitchat);
 
   // Add some specific edge cases
   const edgeCases = [

@@ -6,21 +6,25 @@ document.addEventListener('DOMContentLoaded', () => {
   const statsTokens = document.getElementById('stats-tokens')!;
   const statsCo2 = document.getElementById('stats-co2')!;
   
-  const toggleShield = document.getElementById('toggle-shield') as HTMLInputElement;
-  const toggleMl = document.getElementById('toggle-ml') as HTMLInputElement;
-  
-  const toggleChatgpt = document.getElementById('toggle-chatgpt') as HTMLInputElement;
-  const toggleClaude = document.getElementById('toggle-claude') as HTMLInputElement;
-  const toggleGemini = document.getElementById('toggle-gemini') as HTMLInputElement;
-  
-  const sensitivitySlider = document.getElementById('sensitivity-slider') as HTMLInputElement;
-  const sensitivityDisplay = document.getElementById('sensitivity-display')!;
-  
-  const modelBadge = document.getElementById('model-badge')!;
-  const modelDetails = document.getElementById('model-details')!;
-  const modelProgressContainer = document.getElementById('model-progress-container')!;
-  const modelProgressBar = document.getElementById('model-progress-bar') as HTMLElement;
-  const modelDownloadBtn = document.getElementById('model-download-btn') as HTMLButtonElement;
+  const equivBulb = document.getElementById('equiv-bulb')!;
+  const equivKm = document.getElementById('equiv-km')!;
+  const equivTrees = document.getElementById('equiv-trees')!;
+
+  const searchInput = document.getElementById('popup-web-search-input') as HTMLInputElement;
+  const ecosiaBtn = document.getElementById('popup-search-ecosia-btn') as HTMLButtonElement;
+
+  function updateEcoEquivalents(co2Grams: number, diverted: number) {
+    // ~10g CO2 per LED bulb hour -> co2 / 10
+    const bulbHours = (co2Grams / 10).toFixed(1);
+    // ~120g CO2 per km driven -> co2 / 120
+    const kmDriven = (co2Grams / 120).toFixed(3);
+    // ~60g CO2 absorbed by tree per day -> co2 / 60
+    const trees = (co2Grams / 60).toFixed(2);
+
+    equivBulb.innerText = bulbHours;
+    equivKm.innerText = kmDriven;
+    equivTrees.innerText = trees;
+  }
 
   // Load and display current values from storage
   chrome.storage.local.get([
@@ -37,9 +41,12 @@ document.addEventListener('DOMContentLoaded', () => {
     'modelProgress'
   ], (res) => {
     // Stats
-    statsDiverted.innerText = String(res.queriesDiverted || 0);
+    const diverted = res.queriesDiverted || 0;
+    const co2 = res.co2Saved || 0.0;
+    statsDiverted.innerText = String(diverted);
     statsTokens.innerText = String(res.tokensSaved || 0);
-    statsCo2.innerText = String((res.co2Saved || 0.0).toFixed(2));
+    statsCo2.innerText = String(co2.toFixed(2));
+    updateEcoEquivalents(co2, diverted);
 
     // Controls
     toggleShield.checked = res.ecoPromptEnabled !== false; // default true
@@ -61,14 +68,17 @@ document.addEventListener('DOMContentLoaded', () => {
   chrome.storage.onChanged.addListener((changes, area) => {
     if (area !== 'local') return;
 
-    if (changes.queriesDiverted) {
-      statsDiverted.innerText = String(changes.queriesDiverted.newValue);
+    if (changes.queriesDiverted || changes.co2Saved) {
+      chrome.storage.local.get(['queriesDiverted', 'co2Saved'], (r) => {
+        const div = r.queriesDiverted || 0;
+        const c2 = r.co2Saved || 0.0;
+        statsDiverted.innerText = String(div);
+        statsCo2.innerText = String(c2.toFixed(2));
+        updateEcoEquivalents(c2, div);
+      });
     }
     if (changes.tokensSaved) {
       statsTokens.innerText = String(changes.tokensSaved.newValue);
-    }
-    if (changes.co2Saved) {
-      statsCo2.innerText = String((changes.co2Saved.newValue || 0.0).toFixed(2));
     }
     
     if (changes.modelStatus || changes.modelProgress) {
@@ -80,6 +90,18 @@ document.addEventListener('DOMContentLoaded', () => {
       });
     }
   });
+
+  // Quick Web Search handler
+  function triggerEcosiaSearch() {
+    const q = searchInput.value.trim();
+    if (!q) return;
+    chrome.tabs.create({ url: `https://www.ecosia.org/search?q=${encodeURIComponent(q)}` });
+  }
+
+  ecosiaBtn.onclick = triggerEcosiaSearch;
+  searchInput.onkeydown = (e) => {
+    if (e.key === 'Enter') triggerEcosiaSearch();
+  };
 
   // Event Listeners for UI interaction
   toggleShield.onchange = () => {

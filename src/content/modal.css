@@ -88,6 +88,13 @@
   line-height: 1.2 !important;
 }
 
+.eco-prompt-subtitle {
+  font-size: 11px !important;
+  color: #94a3b8 !important;
+  font-weight: 500 !important;
+  letter-spacing: 0.3px !important;
+}
+
 /* Body */
 .eco-prompt-body {
   font-size: 14px !important;
@@ -114,6 +121,48 @@
   overflow-y: auto !important;
   white-space: pre-wrap !important;
   word-break: break-all !important;
+}
+
+/* Carbon Impact Card */
+.eco-prompt-carbon-card {
+  background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(20, 184, 166, 0.05) 100%) !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  border-radius: 12px !important;
+  padding: 12px 14px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 6px !important;
+}
+
+.eco-prompt-carbon-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+}
+
+.eco-leaf-pulse {
+  font-size: 16px !important;
+  animation: ecoPulse 2s infinite !important;
+}
+
+@keyframes ecoPulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  100% { transform: scale(1); }
+}
+
+.eco-prompt-carbon-title {
+  font-size: 12px !important;
+  font-weight: 700 !important;
+  color: #4ade80 !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.5px !important;
+}
+
+.eco-prompt-carbon-body {
+  font-size: 12px !important;
+  color: #e2e8f0 !important;
+  line-height: 1.4 !important;
 }
 
 /* Action buttons container */

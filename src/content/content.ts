@@ -322,7 +322,7 @@ function resubmitPrompt(inputEl: HTMLElement, submitBtn: HTMLButtonElement | nul
 // ===========================================================
 
 interface SuggestedAction {
-  type: 'math' | 'syntax' | 'conversion' | 'search';
+  type: 'math' | 'syntax' | 'conversion' | 'search' | 'websurf' | 'chitchat';
   url?: string;
   label?: string;
 }
@@ -336,7 +336,81 @@ interface RegexCheckResult {
 function runRegexChecks(text: string): RegexCheckResult {
   const trimmed = text.trim();
 
-  // ── 1. ARITHMETIC ──────────────────────────────────────────────────────────
+  // ── 0. CHITCHAT / ZERO-VALUE PROMPTS (Unwanted Prompts) ─────────────────────
+  const chitchat = /^(?:hi|hello|hey|good morning|good evening|good afternoon|how are you|who are you|are you there|test|testing|sup|yo|hi there|hello there)[.!?]*$/i.test(trimmed);
+  if (chitchat) {
+    return {
+      matched: true,
+      category: 'Unwanted Chitchat / Filler Greeting',
+      suggestedAction: {
+        type: 'chitchat'
+      }
+    };
+  }
+
+  // ── 1. DIRECT WEB SURFING / NAVIGATION ──────────────────────────────────────
+  const navQuery = /^(?:go to|open|visit|navigate to)\s+([a-zA-Z0-9.-]+\.[a-zA-Z]{2,}|youtube|github|gmail|reddit|twitter|amazon|facebook|wikipedia|netflix|chatgpt|google)/i.test(trimmed)
+    || /^[a-zA-Z0-9.-]+\.(?:com|org|io|net|edu|gov|ai)$/i.test(trimmed);
+
+  if (navQuery) {
+    let site = trimmed.replace(/^(?:go to|open|visit|navigate to)\s+/i, '').trim();
+    if (!site.startsWith('http')) {
+      site = site.includes('.') ? `https://${site}` : `https://www.google.com/search?q=${encodeURIComponent(site)}`;
+    }
+    return {
+      matched: true,
+      category: 'Direct Web Surfing / Navigation',
+      suggestedAction: {
+        type: 'websurf',
+        url: site,
+        label: `Navigate Directly (${site.replace(/^https?:\/\//, '')})`
+      }
+    };
+  }
+
+  // ── 2. LIVE WEATHER / FORECAST ──────────────────────────────────────────────
+  const weatherQuery = /^(?:weather|forecast|temperature|is it going to rain|will it rain|weather forecast)\b/i.test(trimmed);
+  if (weatherQuery) {
+    return {
+      matched: true,
+      category: 'Live Weather Forecast',
+      suggestedAction: {
+        type: 'websurf',
+        url: `https://www.ecosia.org/search?q=${encodeURIComponent(trimmed)}`,
+        label: '🌦️ Check Live Weather on Ecosia'
+      }
+    };
+  }
+
+  // ── 3. STOCK / FINANCIAL MARKETS ───────────────────────────────────────────
+  const stockQuery = /^(?:stock price|stock|crypto price|share price|ticker)\b/i.test(trimmed) || /^[a-zA-Z0-9]{1,5}\s+stock$/i.test(trimmed);
+  if (stockQuery) {
+    return {
+      matched: true,
+      category: 'Live Stock & Financial Market Query',
+      suggestedAction: {
+        type: 'websurf',
+        url: `https://finance.yahoo.com/lookup?s=${encodeURIComponent(trimmed)}`,
+        label: '📈 Check Stock Market on Yahoo Finance'
+      }
+    };
+  }
+
+  // ── 4. LOCATION & MAPS ─────────────────────────────────────────────────────
+  const locationQuery = /^(?:directions to|restaurants near me|nearest|gas station near me|pharmacy near me|map of)\b/i.test(trimmed);
+  if (locationQuery) {
+    return {
+      matched: true,
+      category: 'Local Map & Location Search',
+      suggestedAction: {
+        type: 'websurf',
+        url: `https://www.google.com/maps/search/${encodeURIComponent(trimmed)}`,
+        label: '📍 Search Location on Google Maps'
+      }
+    };
+  }
+
+  // ── 5. ARITHMETIC ──────────────────────────────────────────────────────────
   // Pure numeric expression: 5+2, 100/4, (3*8)-1 etc.
   const arithmetic = /^\s*[-+]?\(?\d+(?:\.\d+)?\)?\s*[\+\-\*\/]\s*\(?\d+(?:\.\d+)?\)?[\s\+\-\*\/\(\)\d.]*$/.test(trimmed);
 
@@ -362,7 +436,7 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 2. DICTIONARY / WORD DEFINITION ────────────────────────────────────────
+  // ── 6. DICTIONARY / WORD DEFINITION ────────────────────────────────────────
   const dictQuery = /^(?:meaning of|define|definition of|what does .+ mean|what is the meaning of|synonym(?:s)? (?:of|for)|antonym(?:s)? (?:of|for)|what is a |what are |explain the (?:word|term))\s+\S+/i.test(trimmed);
 
   if (dictQuery) {
@@ -378,7 +452,7 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 3. SIMPLE FACTUAL LOOKUP (Wikipedia) ───────────────────────────────────
+  // ── 7. SIMPLE FACTUAL LOOKUP (Wikipedia) ───────────────────────────────────
   const wikiQuery = /^(?:who is|who was|what is|what was|tell me about|who are|where is|where was|when (?:did|was|is)|why (?:did|is|was))\s+.{3,60}$/i.test(trimmed)
     && trimmed.split(' ').length <= 10; // short factual questions only
 
@@ -395,7 +469,7 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 4. CODING SYNTAX REFERENCE ─────────────────────────────────────────────
+  // ── 8. CODING SYNTAX REFERENCE ─────────────────────────────────────────────
   const syntaxQuery = /^(?:what is the syntax (?:for|of)|how (?:do|to) (?:I )?write(?: a)?|syntax of)\s+.+(?:loop|function|class|method|interface|struct|conditional|if.statement|for.loop|while.loop|switch)/i.test(trimmed);
   const langSyntax = /^(?:javascript|python|typescript|css|html|rust|go|c\+\+|java|ruby|swift|kotlin|php)\s+(?:syntax|how to)/i.test(trimmed);
 
@@ -412,7 +486,7 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 5. UNIT / FORMAT CONVERSION ────────────────────────────────────────────
+  // ── 9. UNIT / FORMAT CONVERSION ────────────────────────────────────────────
   const conversion = /^(?:convert|change|how (?:many|much))\s+.+(?:\s+to\s+|\s+in\s+|\s+into\s+).+/i.test(trimmed);
   if (conversion) {
     return {
@@ -471,14 +545,29 @@ function showSpeedBump(
     <div class="eco-prompt-modal">
       <div class="eco-prompt-header">
         <div class="eco-prompt-icon-container">🍃</div>
-        <h3 class="eco-prompt-title">EcoPrompt Shield</h3>
+        <div>
+          <h3 class="eco-prompt-title">EcoPrompt Shield</h3>
+          <div class="eco-prompt-subtitle">Mindful Compute &amp; Carbon Protection</div>
+        </div>
       </div>
       <p class="eco-prompt-body">
-        This looks like a <span class="eco-prompt-highlight">${category}</span>. Save compute &amp; carbon by using a local tool instead!
+        This looks like a <span class="eco-prompt-highlight">${category}</span>. Save compute &amp; carbon by browsing the web or using a local tool instead!
       </p>
       <div class="eco-prompt-preview">${escapeHtml(preview)}</div>
+      
+      <!-- Carbon Savings Meter Card -->
+      <div class="eco-prompt-carbon-card">
+        <div class="eco-prompt-carbon-header">
+          <span class="eco-leaf-pulse">🌱</span>
+          <span class="eco-prompt-carbon-title">Carbon Impact Comparison</span>
+        </div>
+        <div class="eco-prompt-carbon-body">
+          Web search uses <strong>&lt; 0.003g CO₂</strong> vs <strong>~0.30g CO₂</strong> for an AI LLM query (<strong>99% energy saved</strong>).
+        </div>
+      </div>
+
       <div class="eco-prompt-actions" id="eco-prompt-actions-container"></div>
-      <button class="eco-prompt-btn-bypass" id="eco-prompt-bypass-btn">Ignore and ask AI anyway →</button>
+      <button class="eco-prompt-btn-bypass" id="eco-prompt-bypass-btn">Ignore shield and ask AI anyway →</button>
     </div>
   `;
 
@@ -510,7 +599,55 @@ function escapeHtml(str: string): string {
 }
 
 function buildActions(container: HTMLElement, action: { type: string; url?: string; label?: string }, text: string) {
-  if (action.type === 'math') {
+  if (action.type === 'chitchat') {
+    const ecoBtn = document.createElement('button');
+    ecoBtn.className = 'eco-prompt-btn-primary';
+    ecoBtn.innerHTML = '🌲 Surf Web with Ecosia (Plant Trees)';
+    ecoBtn.onclick = () => {
+      chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
+      window.open(`https://www.ecosia.org/search?q=${encodeURIComponent(text)}`, '_blank');
+      closeSpeedBump();
+    };
+    container.appendChild(ecoBtn);
+
+    const ddgBtn = document.createElement('button');
+    ddgBtn.className = 'eco-prompt-btn-secondary';
+    ddgBtn.innerHTML = '🦆 Search DuckDuckGo';
+    ddgBtn.onclick = () => {
+      chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
+      window.open(`https://duckduckgo.com/?q=${encodeURIComponent(text)}`, '_blank');
+      closeSpeedBump();
+    };
+    container.appendChild(ddgBtn);
+  }
+
+  else if (action.type === 'websurf') {
+    if (action.url && action.label) {
+      const directBtn = document.createElement('button');
+      directBtn.className = 'eco-prompt-btn-primary';
+      directBtn.innerHTML = action.label.startsWith('http') || action.label.includes('Navigate') 
+        ? `🌐 ${action.label}` 
+        : action.label;
+      directBtn.onclick = () => {
+        chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
+        window.open(action.url!, '_blank');
+        closeSpeedBump();
+      };
+      container.appendChild(directBtn);
+    }
+
+    const ecosiaBtn = document.createElement('button');
+    ecosiaBtn.className = action.url ? 'eco-prompt-btn-secondary' : 'eco-prompt-btn-primary';
+    ecosiaBtn.innerHTML = '🌲 Search with Ecosia (Eco Search)';
+    ecosiaBtn.onclick = () => {
+      chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
+      window.open(`https://www.ecosia.org/search?q=${encodeURIComponent(text)}`, '_blank');
+      closeSpeedBump();
+    };
+    container.appendChild(ecosiaBtn);
+  }
+
+  else if (action.type === 'math') {
     const btn = document.createElement('button');
     btn.className = 'eco-prompt-btn-primary';
     btn.innerHTML = '🧮 Open Local Calculator';
@@ -520,6 +657,16 @@ function buildActions(container: HTMLElement, action: { type: string; url?: stri
       closeSpeedBump();
     };
     container.appendChild(btn);
+
+    const ecosia = document.createElement('button');
+    ecosia.className = 'eco-prompt-btn-secondary';
+    ecosia.innerHTML = '🌲 Search Ecosia Web Calculator';
+    ecosia.onclick = () => {
+      chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
+      window.open(`https://www.ecosia.org/search?q=${encodeURIComponent(text)}`, '_blank');
+      closeSpeedBump();
+    };
+    container.appendChild(ecosia);
   }
 
   else if (action.type === 'syntax') {
@@ -557,10 +704,20 @@ function buildActions(container: HTMLElement, action: { type: string; url?: stri
   }
 
   else {
-    // action.type === 'search' — could be dictionary, Wikipedia, or generic
+    // Default search - Offer Ecosia first (Eco-friendly search) then Google & DuckDuckGo
+    const eco = document.createElement('button');
+    eco.className = 'eco-prompt-btn-primary';
+    eco.innerHTML = '🌲 Search Ecosia (Plants Trees)';
+    eco.onclick = () => {
+      chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
+      window.open(`https://www.ecosia.org/search?q=${encodeURIComponent(text)}`, '_blank');
+      closeSpeedBump();
+    };
+    container.appendChild(eco);
+
     if (action.url && action.label) {
       const specific = document.createElement('button');
-      specific.className = 'eco-prompt-btn-primary';
+      specific.className = 'eco-prompt-btn-secondary';
       specific.innerHTML = `🔗 ${action.label}`;
       specific.onclick = () => {
         chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
@@ -571,7 +728,7 @@ function buildActions(container: HTMLElement, action: { type: string; url?: stri
     }
 
     const g = document.createElement('button');
-    g.className = action.url ? 'eco-prompt-btn-secondary' : 'eco-prompt-btn-primary';
+    g.className = 'eco-prompt-btn-secondary';
     g.innerHTML = '🔍 Search Google';
     g.onclick = () => {
       chrome.runtime.sendMessage({ type: 'RECORD_DIVERSION', text });
