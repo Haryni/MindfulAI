@@ -97,16 +97,14 @@ async function loadModels(): Promise<{classifier: any, extractor: any}> {
   }
 }
 
-function cosineSimilarity(a: any, b: any) {
+function cosineSimilarity(a: any, b: any, normA: number) {
   let dotProduct = 0;
-  let normA = 0;
   let normB = 0;
   for (let i = 0; i < a.length; i++) {
     dotProduct += a[i] * b[i];
-    normA += a[i] * a[i];
     normB += b[i] * b[i];
   }
-  return dotProduct / (Math.sqrt(normA) * Math.sqrt(normB));
+  return dotProduct / (normA * Math.sqrt(normB));
 }
 
 // Intercept messages
@@ -158,16 +156,26 @@ async function handleClassification(text: string) {
     
     // 1. Semantic Similarity Search against dataset
     const extractionResult = await extractor(text, { pooling: 'mean', normalize: true });
-    const textEmbedding = Array.from(extractionResult.data);
+    const textEmbedding = Array.from(extractionResult.data) as number[];
+    
+    let normA = 0;
+    for (let i = 0; i < textEmbedding.length; i++) {
+      normA += textEmbedding[i] * textEmbedding[i];
+    }
+    normA = Math.sqrt(normA);
     
     let maxSimilarity = 0;
     let matchedPrompt = '';
     
     for (const item of embeddingsData) {
-      const similarity = cosineSimilarity(textEmbedding, item.embedding);
+      const similarity = cosineSimilarity(textEmbedding, item.embedding, normA);
       if (similarity > maxSimilarity) {
         maxSimilarity = similarity;
         matchedPrompt = item.text;
+        
+        if (maxSimilarity > 0.85) {
+          break; // Early exit since we already crossed the intercept threshold
+        }
       }
     }
     
