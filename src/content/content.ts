@@ -341,7 +341,7 @@ function runRegexChecks(text: string): RegexCheckResult {
   if (chitchat) {
     return {
       matched: true,
-      category: 'Unwanted Chitchat / Filler Greeting',
+      category: 'Unwanted Prompt',
       suggestedAction: {
         type: 'chitchat'
       }
@@ -551,7 +551,7 @@ function showSpeedBump(
         </div>
       </div>
       <p class="eco-prompt-body">
-        This looks like a <span class="eco-prompt-highlight">${category}</span>. Save compute &amp; carbon by browsing the web or using a local tool instead!
+        ${category === 'Unwanted Prompt' ? 'This prompt can be easily surfed.' : `This looks like a <span class="eco-prompt-highlight">${category}</span>. Save compute &amp; carbon by browsing the web or using a local tool instead!`}
       </p>
       <div class="eco-prompt-preview">${escapeHtml(preview)}</div>
       
@@ -567,7 +567,7 @@ function showSpeedBump(
       </div>
 
       <div class="eco-prompt-actions" id="eco-prompt-actions-container"></div>
-      <button class="eco-prompt-btn-bypass" id="eco-prompt-bypass-btn">Ignore shield and ask AI anyway →</button>
+      ${category === 'Unwanted Prompt' ? '' : '<button class="eco-prompt-btn-bypass" id="eco-prompt-bypass-btn">Ignore shield and ask AI anyway →</button>'}
     </div>
   `;
 
@@ -576,16 +576,21 @@ function showSpeedBump(
   const container = document.getElementById('eco-prompt-actions-container')!;
   buildActions(container, action, text);
 
-  document.getElementById('eco-prompt-bypass-btn')!.onclick = () => {
-    closeSpeedBump();
-    resubmitPrompt(inputEl, clickButton || null);
-  };
+  const bypassBtn = document.getElementById('eco-prompt-bypass-btn');
+  if (bypassBtn) {
+    bypassBtn.onclick = () => {
+      closeSpeedBump();
+      resubmitPrompt(inputEl, clickButton || null);
+    };
+  }
 
   // Click outside the card closes modal and lets prompt through
   overlay.addEventListener('click', (e) => {
     if (e.target === overlay) {
       closeSpeedBump();
-      resubmitPrompt(inputEl, clickButton || null);
+      if (category !== 'Unwanted Prompt') {
+        resubmitPrompt(inputEl, clickButton || null);
+      }
     }
   });
 }
