@@ -284,7 +284,7 @@ function processPrompt(inputEl: HTMLElement, text: string, clickButton?: HTMLBut
     return;
   }
 
-  // 2. ML Classification (if enabled and model ready)
+  // 2. ML Classification (if enabled)
   if (settings.mlClassificationEnabled) {
     showLoadingSpinner();
 
@@ -292,7 +292,7 @@ function processPrompt(inputEl: HTMLElement, text: string, clickButton?: HTMLBut
       removeLoadingSpinner();
 
       if (chrome.runtime.lastError) {
-        // Extension context invalidated, just resubmit
+        // Context invalidated, resubmit
         resubmitPrompt(inputEl, clickButton || null);
         return;
       }
@@ -301,11 +301,24 @@ function processPrompt(inputEl: HTMLElement, text: string, clickButton?: HTMLBut
         showSpeedBump(
           inputEl,
           text,
-          'AI flagged this as a simple query',
+          res.label || 'AI flagged this as a simple query',
           {
             type: 'search',
-            url: `https://www.google.com/search?q=${encodeURIComponent(text)}`,
-            label: 'Search Google instead'
+            url: `https://www.ecosia.org/search?q=${encodeURIComponent(text)}`,
+            label: 'Search Ecosia (Plant Trees)'
+          },
+          clickButton
+        );
+      } else if (res && res.reason === 'model_not_ready' && isSimpleShortQuery(text)) {
+        // Model downloading/idle fallback for simple short queries
+        showSpeedBump(
+          inputEl,
+          text,
+          'Simple Search Query',
+          {
+            type: 'search',
+            url: `https://www.ecosia.org/search?q=${encodeURIComponent(text)}`,
+            label: 'Search Ecosia instead'
           },
           clickButton
         );
@@ -313,9 +326,30 @@ function processPrompt(inputEl: HTMLElement, text: string, clickButton?: HTMLBut
         resubmitPrompt(inputEl, clickButton || null);
       }
     });
+  } else if (isSimpleShortQuery(text)) {
+    showSpeedBump(
+      inputEl,
+      text,
+      'Simple Search Query',
+      {
+        type: 'search',
+        url: `https://www.ecosia.org/search?q=${encodeURIComponent(text)}`,
+        label: 'Search Ecosia instead'
+      },
+      clickButton
+    );
   } else {
     resubmitPrompt(inputEl, clickButton || null);
   }
+}
+
+function isSimpleShortQuery(text: string): boolean {
+  const trimmed = text.trim();
+  const words = trimmed.split(/\s+/);
+  if (words.length <= 6 && /^(?:what|where|who|when|how|why|is|can|do|does|will|tell me)\b/i.test(trimmed)) {
+    return true;
+  }
+  return false;
 }
 
 function resubmitPrompt(inputEl: HTMLElement, submitBtn: HTMLButtonElement | null) {
@@ -332,7 +366,7 @@ function resubmitPrompt(inputEl: HTMLElement, submitBtn: HTMLButtonElement | nul
       // Fallback: synthesize Enter key
       const enterEvent = new KeyboardEvent('keydown', {
         key: 'Enter', code: 'Enter', keyCode: 13, which: 13,
-        bubbles: true, cancelable: true
+        bubbles: true, cancelable: true, composed: true
       });
       inputEl.dispatchEvent(enterEvent);
     }
@@ -438,15 +472,37 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 5. ARITHMETIC ──────────────────────────────────────────────────────────
-  // Pure numeric expression: 5+2, 100/4, (3*8)-1 etc.
+  // ── 5. TRANSLATION ─────────────────────────────────────────────────────────
+  const translationQuery = /^(?:translate|how do you say|how to say|what is .+ in)\s+.+/i.test(trimmed);
+  if (translationQuery) {
+    return {
+      matched: true,
+      category: 'Language Translation',
+      suggestedAction: {
+        type: 'search',
+        url: `https://translate.google.com/?text=${encodeURIComponent(trimmed)}`,
+        label: '🌐 Translate with Google Translate'
+      }
+    };
+  }
+
+  // ── 6. TIME & DATE ─────────────────────────────────────────────────────────
+  const timeQuery = /^(?:what time is it|current time|what date is it|what day is it)\b/i.test(trimmed);
+  if (timeQuery) {
+    return {
+      matched: true,
+      category: 'Time & Date Query',
+      suggestedAction: {
+        type: 'search',
+        url: `https://www.ecosia.org/search?q=${encodeURIComponent(trimmed)}`,
+        label: '⏰ Check Time & Date'
+      }
+    };
+  }
+
+  // ── 7. ARITHMETIC ──────────────────────────────────────────────────────────
   const arithmetic = /^\s*[-+]?\(?\d+(?:\.\d+)?\)?\s*[\+\-\*\/]\s*\(?\d+(?:\.\d+)?\)?[\s\+\-\*\/\(\)\d.]*$/.test(trimmed);
-
-  // "calculate / calc / compute 5 * 12"
   const calcPhrase = /^(?:calculate|calc|compute)\s+.+/i.test(trimmed);
-
-  // Natural-language arithmetic: "add X and Y", "subtract X from Y",
-  // "divide X by/and Y", "multiply X by/and Y"
   const nlMath = /^(?:add|plus|sum of)\s+[\d.,]+\s+(?:and|\+)\s+[\d.,]+/i.test(trimmed)
     || /^(?:subtract|minus|take away|deduct)\s+[\d.,]+\s+(?:from|and)\s+[\d.,]+/i.test(trimmed)
     || /^(?:divide|divid[e]?)\s+[\d.,]+\s+(?:by|and|with)\s+[\d.,]+/i.test(trimmed)
@@ -464,7 +520,7 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 6. DICTIONARY / WORD DEFINITION ────────────────────────────────────────
+  // ── 8. DICTIONARY / WORD DEFINITION ────────────────────────────────────────
   const dictQuery = /^(?:meaning of|define|definition of|what does .+ mean|what is the meaning of|synonym(?:s)? (?:of|for)|antonym(?:s)? (?:of|for)|what is a |what are |explain the (?:word|term))\s+\S+/i.test(trimmed);
 
   if (dictQuery) {
@@ -480,9 +536,9 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 7. SIMPLE FACTUAL LOOKUP (Wikipedia) ───────────────────────────────────
+  // ── 9. SIMPLE FACTUAL LOOKUP (Wikipedia / Search) ──────────────────────────
   const wikiQuery = /^(?:who is|who was|what is|what was|tell me about|who are|where is|where was|when (?:did|was|is)|why (?:did|is|was))\s+.{3,60}$/i.test(trimmed)
-    && trimmed.split(' ').length <= 10; // short factual questions only
+    && trimmed.split(' ').length <= 10;
 
   if (wikiQuery) {
     const q = trimmed.replace(/^(?:who is|who was|what is|what was|tell me about|who are|where is|where was|when (?:did|was|is)|why (?:did|is|was))\s+/i, '').trim();
@@ -497,7 +553,7 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 8. CODING SYNTAX REFERENCE ─────────────────────────────────────────────
+  // ── 10. CODING SYNTAX REFERENCE ────────────────────────────────────────────
   const syntaxQuery = /^(?:what is the syntax (?:for|of)|how (?:do|to) (?:I )?write(?: a)?|syntax of)\s+.+(?:loop|function|class|method|interface|struct|conditional|if.statement|for.loop|while.loop|switch)/i.test(trimmed);
   const langSyntax = /^(?:javascript|python|typescript|css|html|rust|go|c\+\+|java|ruby|swift|kotlin|php)\s+(?:syntax|how to)/i.test(trimmed);
 
@@ -514,7 +570,7 @@ function runRegexChecks(text: string): RegexCheckResult {
     };
   }
 
-  // ── 9. UNIT / FORMAT CONVERSION ────────────────────────────────────────────
+  // ── 11. UNIT / FORMAT CONVERSION ───────────────────────────────────────────
   const conversion = /^(?:convert|change|how (?:many|much))\s+.+(?:\s+to\s+|\s+in\s+|\s+into\s+).+/i.test(trimmed);
   if (conversion) {
     return {
