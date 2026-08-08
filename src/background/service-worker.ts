@@ -146,8 +146,10 @@ async function handleClassification(text: string) {
   }
 
   if (settings.modelStatus !== 'ready') {
-    // Model not loaded yet, try downloading in background
-    loadModels().catch(() => {});
+    // Model not loaded yet, initiate download in background if idle
+    if (settings.modelStatus === 'idle') {
+      loadModels().catch(() => {});
+    }
     return { intercept: false, reason: 'model_not_ready' };
   }
 
@@ -191,7 +193,6 @@ async function handleClassification(text: string) {
     
     // 2. Fall back to Zero-shot Classification
     
-    // More granular candidate labels for better zero-shot accuracy
     const simpleLabels = [
       'math calculation or arithmetic',
       'simple web search or factual query',
@@ -211,7 +212,6 @@ async function handleClassification(text: string) {
     
     const result = await model(text, candidateLabels);
     
-    // Sum the scores of all simple labels
     let simpleScore = 0;
     for (let i = 0; i < result.labels.length; i++) {
       if (simpleLabels.includes(result.labels[i])) {
@@ -225,7 +225,7 @@ async function handleClassification(text: string) {
     return {
       intercept,
       score: simpleScore,
-      label: result.labels[0], // Return the top matched label for debugging/logging
+      label: result.labels[0],
       threshold
     };
   } catch (err) {
