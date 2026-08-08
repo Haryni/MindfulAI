@@ -10,6 +10,8 @@
   "host_permissions": [
     "https://chatgpt.com/*",
     "https://*.chatgpt.com/*",
+    "https://chat.openai.com/*",
+    "https://*.openai.com/*",
     "https://claude.ai/*",
     "https://gemini.google.com/*",
     "https://huggingface.co/*",
@@ -25,6 +27,8 @@
       "matches": [
         "https://chatgpt.com/*",
         "https://*.chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://*.openai.com/*",
         "https://claude.ai/*",
         "https://gemini.google.com/*"
       ],
@@ -51,7 +55,14 @@
   "web_accessible_resources": [
     {
       "resources": ["modal.css", "icons/*.png"],
-      "matches": ["https://chatgpt.com/*", "https://*.chatgpt.com/*", "https://claude.ai/*", "https://gemini.google.com/*"]
+      "matches": [
+        "https://chatgpt.com/*",
+        "https://*.chatgpt.com/*",
+        "https://chat.openai.com/*",
+        "https://*.openai.com/*",
+        "https://claude.ai/*",
+        "https://gemini.google.com/*"
+      ]
     }
   ]
 }
