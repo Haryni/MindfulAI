@@ -60,12 +60,15 @@ const CHAT_INPUT_SELECTORS = [
   // ChatGPT
   '#prompt-textarea',
   'div[data-testid="prompt-textarea"]',
+  'div[contenteditable="true"]#prompt-textarea',
   // Claude
   '.ProseMirror[contenteditable="true"]',
   'div[contenteditable="true"].ProseMirror',
+  'fieldset div[contenteditable="true"]',
   // Gemini
   'div[contenteditable="true"][aria-label*="Enter a prompt" i]',
   'rich-textarea div[contenteditable="true"]',
+  'rich-textarea textarea',
   // Generic fallbacks
   'div[contenteditable="true"][aria-label*="message" i]',
   'div[contenteditable="true"][aria-label*="prompt" i]',
@@ -74,14 +77,17 @@ const CHAT_INPUT_SELECTORS = [
   'textarea[placeholder*="message" i]',
   'textarea[placeholder*="prompt" i]',
   'textarea[placeholder*="Ask" i]',
+  'textarea',
 ];
 
 const SUBMIT_BUTTON_SELECTORS = [
   // ChatGPT specific
   'button[data-testid="send-button"]',
   'button[data-testid="fruitjuice-send-button"]',
+  'button[aria-label*="Send" i]',
   // Claude specific
   'button[aria-label="Send Message"]',
+  'button[aria-label*="Send" i]',
   // Gemini specific
   'button[aria-label="Send message"]',
   'button.send-button',
@@ -92,16 +98,38 @@ const SUBMIT_BUTTON_SELECTORS = [
 ];
 
 function findChatInput(): HTMLElement | null {
-  // 1. Prefer the actively focused element if it is a valid input
+  // 1. Prefer the actively focused element if it or an ancestor is a valid input
   const active = document.activeElement as HTMLElement;
-  if (active && isKnownChatInput(active)) return active;
+  if (active) {
+    const matchedActive = getChatInputContainer(active);
+    if (matchedActive) return matchedActive;
+  }
 
   // 2. Try each known selector
   for (const sel of CHAT_INPUT_SELECTORS) {
     try {
       const el = document.querySelector(sel) as HTMLElement | null;
-      if (el && isKnownChatInput(el)) return el;
+      if (el) {
+        const matched = getChatInputContainer(el);
+        if (matched) return matched;
+      }
     } catch (_) { /* ignore invalid selectors */ }
+  }
+
+  return null;
+}
+
+function getChatInputContainer(target: HTMLElement | null): HTMLElement | null {
+  if (!target || target.tagName === 'BODY') return null;
+
+  if (isKnownChatInput(target)) return target;
+
+  // Search up to ancestors (e.g. <p> or <span> inside contenteditable div or #prompt-textarea)
+  const ancestor = target.closest<HTMLElement>(
+    '#prompt-textarea, [data-testid*="prompt"], [data-testid*="message"], [contenteditable="true"], rich-textarea, textarea, form'
+  );
+  if (ancestor && isKnownChatInput(ancestor)) {
+    return ancestor;
   }
 
   return null;
@@ -118,22 +146,12 @@ function isKnownChatInput(el: HTMLElement): boolean {
   if (testId.includes('prompt') || testId.includes('message')) return true;
 
   // 3. contenteditable div that has meaningful content area role
-  if (el.getAttribute('contenteditable') === 'true') {
-    const role = el.getAttribute('role') || '';
-    const label = (el.getAttribute('aria-label') || '').toLowerCase();
-    const isMultiLine = el.getAttribute('aria-multiline') === 'true';
-    
-    if (isMultiLine) return true;
-    if (role === 'textbox') return true;
-    if (label.includes('message') || label.includes('prompt') || label.includes('ask') || label.includes('enter a prompt')) return true;
-    if (el.classList.contains('ProseMirror')) return true;
-    // Last resort: if it's inside a form or has siblings that are buttons
-    const parent = el.closest('form, [role="main"]');
-    if (parent && parent.querySelector('button')) return true;
+  if (el.getAttribute('contenteditable') === 'true' || el.classList.contains('ProseMirror')) {
+    return true;
   }
 
   // 4. Textarea
-  if (el.tagName === 'TEXTAREA') return true;
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') return true;
 
   return false;
 }
@@ -150,10 +168,11 @@ function findSubmitButton(): HTMLButtonElement | null {
 
 // Extract text contents from input
 function getInputText(el: HTMLElement): string {
-  if (el.tagName === 'TEXTAREA') {
-    return (el as HTMLTextAreaElement).value;
+  if (el.tagName === 'TEXTAREA' || el.tagName === 'INPUT') {
+    return (el as HTMLInputElement | HTMLTextAreaElement).value;
   }
-  return el.innerText || el.textContent || '';
+  const text = el.innerText || el.textContent || '';
+  return text.replace(/[\u200B-\u200D\uFEFF]/g, '').trim();
 }
 
 // ===========================================================
@@ -170,17 +189,18 @@ function handleKeyDown(e: KeyboardEvent) {
 
   if (e.key !== 'Enter' || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey) return;
 
-  const target = e.target as HTMLElement;
-  if (!isKnownChatInput(target)) return;
-  if (bypassedElements.has(target)) return;
+  const rawTarget = e.target as HTMLElement;
+  const inputEl = getChatInputContainer(rawTarget);
+  if (!inputEl) return;
+  if (bypassedElements.has(inputEl) || bypassedElements.has(rawTarget)) return;
 
-  const text = getInputText(target).trim();
+  const text = getInputText(inputEl).trim();
   if (!text) return;
 
   e.preventDefault();
   e.stopImmediatePropagation();
 
-  processPrompt(target, text);
+  processPrompt(inputEl, text);
 }
 
 function handlePointerDown(e: PointerEvent) {
@@ -188,7 +208,7 @@ function handlePointerDown(e: PointerEvent) {
   if (!settings.ecoPromptEnabled || !isCurrentPlatformEnabled()) return;
 
   const target = e.target as HTMLElement;
-  const button = target.closest('button') as HTMLButtonElement | null;
+  const button = target.closest('button, [role="button"]') as HTMLButtonElement | null;
   if (!button) return;
   if (bypassedElements.has(button)) return;
 
@@ -211,7 +231,7 @@ function handleClick(e: MouseEvent) {
   if (!settings.ecoPromptEnabled || !isCurrentPlatformEnabled()) return;
 
   const target = e.target as HTMLElement;
-  const button = target.closest('button') as HTMLButtonElement | null;
+  const button = target.closest('button, [role="button"]') as HTMLButtonElement | null;
   if (!button) return;
   if (bypassedElements.has(button)) return;
 
@@ -229,17 +249,25 @@ function handleClick(e: MouseEvent) {
   processPrompt(inputEl, text, button);
 }
 
-function isKnownSendButton(btn: HTMLButtonElement): boolean {
-  const testId = btn.getAttribute('data-testid') || '';
-  if (testId.includes('send') || testId.includes('fruitjuice')) return true;
+function isKnownSendButton(btn: HTMLElement): boolean {
+  if (!btn) return false;
+
+  const testId = (btn.getAttribute('data-testid') || '').toLowerCase();
+  if (testId.includes('send') || testId.includes('fruitjuice') || testId.includes('submit')) return true;
 
   const label = (btn.getAttribute('aria-label') || '').toLowerCase();
-  if (label.includes('send')) return true;
+  if (label.includes('send') || label.includes('submit')) return true;
 
   if (btn.getAttribute('type') === 'submit') return true;
 
-  const cls = btn.className;
-  if (cls.includes('send')) return true;
+  const cls = (btn.className || '').toString().toLowerCase();
+  if (cls.includes('send') || cls.includes('submit')) return true;
+
+  // If inside prompt container or form with SVG/arrow icon
+  const container = btn.closest('form, div[role="main"], fieldset, #prompt-textarea-container');
+  if (container && (btn.querySelector('svg') || btn.innerText.includes('↑'))) {
+    return true;
+  }
 
   return false;
 }
