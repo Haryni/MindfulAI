@@ -13,6 +13,21 @@ document.addEventListener('DOMContentLoaded', () => {
   const searchInput = document.getElementById('popup-web-search-input') as HTMLInputElement;
   const ecosiaBtn = document.getElementById('popup-search-ecosia-btn') as HTMLButtonElement;
 
+  const toggleShield = document.getElementById('toggle-shield') as HTMLInputElement;
+  const toggleMl = document.getElementById('toggle-ml') as HTMLInputElement;
+  const sensitivitySlider = document.getElementById('sensitivity-slider') as HTMLInputElement;
+  const sensitivityDisplay = document.getElementById('sensitivity-display')!;
+  
+  const toggleChatgpt = document.getElementById('toggle-chatgpt') as HTMLInputElement;
+  const toggleClaude = document.getElementById('toggle-claude') as HTMLInputElement;
+  const toggleGemini = document.getElementById('toggle-gemini') as HTMLInputElement;
+
+  const modelBadge = document.getElementById('model-badge')!;
+  const modelDetails = document.getElementById('model-details')!;
+  const modelProgressContainer = document.getElementById('model-progress-container') as HTMLElement;
+  const modelProgressBar = document.getElementById('model-progress-bar') as HTMLElement;
+  const modelDownloadBtn = document.getElementById('model-download-btn') as HTMLButtonElement;
+
   function updateEcoEquivalents(co2Grams: number, diverted: number) {
     // ~10g CO2 per LED bulb hour -> co2 / 10
     const bulbHours = (co2Grams / 10).toFixed(1);
