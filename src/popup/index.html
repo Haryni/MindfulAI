@@ -5,149 +5,429 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>EcoPrompt Dashboard</title>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap');
 
     :root {
-      --bg-color: #ffffff;
-      --text-primary: #1e293b;
-      --text-secondary: #64748b;
-      --border-color: #e2e8f0;
-      --accent-green: #10b981;
-      --accent-green-hover: #059669;
-      --accent-light: #d1fae5;
+      --bg-dark: #0b1329;
+      --card-bg: rgba(30, 41, 59, 0.7);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-hover-border: rgba(52, 211, 153, 0.3);
+      --text-primary: #f8fafc;
+      --text-secondary: #94a3b8;
+      --text-muted: #64748b;
+      --accent-emerald: #10b981;
+      --accent-teal: #14b8a6;
+      --accent-cyan: #06b6d4;
+      --accent-gradient: linear-gradient(135deg, #34d399 0%, #06b6d4 100%);
+      --glow-emerald: rgba(16, 185, 129, 0.25);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
     }
 
     body {
-      width: 320px;
-      background-color: var(--bg-color);
+      width: 360px;
+      background: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 10% 10%, rgba(16, 185, 129, 0.12) 0%, transparent 40%),
+        radial-gradient(circle at 90% 90%, rgba(6, 182, 212, 0.1) 0%, transparent 40%);
       color: var(--text-primary);
-      font-family: 'Inter', sans-serif;
-      padding: 20px;
-      margin: 0;
-      box-sizing: border-box;
+      padding: 18px;
+      overflow-x: hidden;
     }
 
     /* Header */
     header {
       display: flex;
       align-items: center;
-      gap: 10px;
-      margin-bottom: 24px;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--card-border);
     }
 
-    .logo-container {
-      width: 36px;
-      height: 36px;
-      background-color: var(--accent-light);
-      color: var(--accent-green);
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .logo-badge {
+      width: 38px;
+      height: 38px;
+      background: rgba(16, 185, 129, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.3);
       border-radius: 12px;
       display: flex;
       align-items: center;
       justify-content: center;
       font-size: 20px;
+      box-shadow: 0 0 16px var(--glow-emerald);
+      position: relative;
     }
 
-    .title {
-      font-size: 18px;
+    .logo-badge::after {
+      content: '';
+      position: absolute;
+      inset: -2px;
+      border-radius: 14px;
+      background: var(--accent-gradient);
+      z-index: -1;
+      opacity: 0.25;
+      blur: 4px;
+    }
+
+    .brand-title {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-size: 19px;
+      font-weight: 800;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: -0.3px;
+    }
+
+    .brand-tagline {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .shield-status-tag {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      padding: 5px 10px;
+      border-radius: 20px;
+      font-size: 10px;
       font-weight: 700;
-      color: var(--text-primary);
-      margin: 0;
+      color: #34d399;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
     }
 
-    /* Stats */
-    .impact-section {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 24px;
+    .pulse-dot {
+      width: 6px;
+      height: 6px;
+      background-color: #34d399;
+      border-radius: 50%;
+      box-shadow: 0 0 8px #34d399;
+      animation: statusPulse 2s infinite;
+    }
+
+    @keyframes statusPulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px #34d399; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+
+    /* Cards */
+    .glass-card {
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin-bottom: 14px;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .glass-card:hover {
+      border-color: var(--card-hover-border);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
     }
 
     .section-title {
-      font-size: 12px;
-      font-weight: 600;
+      font-size: 11px;
+      font-weight: 700;
       color: var(--text-secondary);
       text-transform: uppercase;
-      letter-spacing: 0.5px;
-      margin: 0 0 16px 0;
+      letter-spacing: 0.8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
     }
 
+    /* Stats Grid */
     .stats-grid {
       display: grid;
       grid-template-columns: 1fr 1fr;
-      gap: 16px;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    .stat-item {
+    .stat-box {
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 10px 12px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 2px;
     }
 
-    .stat-item.full-width {
+    .stat-box-val {
+      font-size: 20px;
+      font-weight: 800;
+      color: #ffffff;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    .stat-box-lbl {
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      font-weight: 500;
+    }
+
+    .stat-featured {
       grid-column: span 2;
-      flex-direction: row;
+      background: linear-gradient(135deg, rgba(16, 185, 129, 0.12) 0%, rgba(6, 182, 212, 0.06) 100%);
+      border: 1px solid rgba(52, 211, 153, 0.2);
+      border-radius: 12px;
+      padding: 12px 14px;
+      display: flex;
       justify-content: space-between;
       align-items: center;
-      background: white;
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
     }
 
-    .stat-value {
-      font-size: 20px;
-      font-weight: 700;
+    .stat-featured-val {
+      font-size: 22px;
+      font-weight: 800;
+      background: var(--accent-gradient);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+
+    /* Goal Bar */
+    .goal-container {
+      margin-top: 12px;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.06);
+    }
+
+    .goal-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-secondary);
+      margin-bottom: 6px;
+      font-weight: 600;
+    }
+
+    .goal-bar-bg {
+      height: 6px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .goal-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: var(--accent-gradient);
+      border-radius: 4px;
+      transition: width 0.6s ease;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.5);
+    }
+
+    /* Equivalents Bar */
+    .equiv-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 12px;
+    }
+
+    .equiv-pill {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 8px;
+      padding: 6px 8px;
+      text-align: center;
+      font-size: 10.5px;
+      color: var(--text-secondary);
+      transition: background 0.2s;
+    }
+
+    .equiv-pill:hover {
+      background: rgba(255, 255, 255, 0.06);
       color: var(--text-primary);
     }
 
-    .stat-value.green {
-      color: var(--accent-green);
+    .equiv-pill-num {
+      font-weight: 700;
+      color: #34d399;
     }
 
-    .stat-label {
-      font-size: 12px;
-      color: var(--text-secondary);
-    }
-
-    /* Controls */
-    .controls-section {
+    /* Eco Search Hub */
+    .search-engines-row {
       display: flex;
-      flex-direction: column;
-      gap: 16px;
-      margin-bottom: 24px;
+      gap: 4px;
+      margin-bottom: 8px;
     }
 
-    .control-row {
+    .engine-tab {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      color: var(--text-secondary);
+      padding: 5px 0;
+      border-radius: 6px;
+      font-size: 10.5px;
+      font-weight: 600;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+    }
+
+    .engine-tab.active {
+      background: rgba(16, 185, 129, 0.2);
+      border-color: rgba(52, 211, 153, 0.4);
+      color: #34d399;
+    }
+
+    .search-input-group {
+      display: flex;
+      gap: 6px;
+    }
+
+    .search-input {
+      flex: 1;
+      background: rgba(15, 23, 42, 0.8);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 8px;
+      padding: 8px 12px;
+      font-size: 12px;
+      color: var(--text-primary);
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: #34d399;
+      box-shadow: 0 0 10px rgba(52, 211, 153, 0.2);
+    }
+
+    .search-btn {
+      background: var(--accent-gradient);
+      border: none;
+      color: #052e16;
+      font-weight: 700;
+      font-size: 12px;
+      padding: 0 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .search-btn:hover {
+      transform: scale(1.03);
+      filter: brightness(1.1);
+    }
+
+    /* Test Classifier Playground */
+    .tester-container {
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px dashed rgba(52, 211, 153, 0.3);
+      border-radius: 10px;
+      padding: 10px;
+      margin-top: 6px;
+    }
+
+    .tester-row {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    .tester-input {
+      flex: 1;
+      background: rgba(11, 19, 41, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 6px;
+      padding: 6px 10px;
+      font-size: 11.5px;
+      color: var(--text-primary);
+      outline: none;
+    }
+
+    .tester-btn {
+      background: rgba(52, 211, 153, 0.15);
+      border: 1px solid rgba(52, 211, 153, 0.3);
+      color: #34d399;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 0 10px;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+
+    .tester-btn:hover {
+      background: rgba(52, 211, 153, 0.25);
+    }
+
+    .tester-result {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.4;
+      display: none;
+      padding: 6px 8px;
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 6px;
+    }
+
+    /* Controls & Toggles */
+    .control-item {
       display: flex;
       justify-content: space-between;
       align-items: center;
+      margin-bottom: 12px;
     }
 
-    .control-text {
+    .control-item:last-child {
+      margin-bottom: 0;
+    }
+
+    .control-info {
       flex: 1;
-      padding-right: 12px;
+      padding-right: 10px;
     }
 
-    .control-label {
-      font-size: 14px;
+    .control-title {
+      font-size: 12.5px;
       font-weight: 600;
       color: var(--text-primary);
-      margin-bottom: 2px;
     }
 
     .control-desc {
-      font-size: 12px;
+      font-size: 10.5px;
       color: var(--text-secondary);
-      line-height: 1.4;
+      line-height: 1.3;
     }
 
-    /* iOS style switch */
+    /* Custom Switch */
     .switch {
       position: relative;
       display: inline-block;
-      width: 44px;
-      height: 24px;
+      width: 40px;
+      height: 22px;
       flex-shrink: 0;
     }
 
@@ -160,207 +440,318 @@
     .slider {
       position: absolute;
       cursor: pointer;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background-color: #cbd5e1;
-      transition: .3s;
-      border-radius: 24px;
+      inset: 0;
+      background-color: #334155;
+      transition: .25s;
+      border-radius: 22px;
     }
 
     .slider:before {
       position: absolute;
       content: "";
-      height: 20px;
-      width: 20px;
-      left: 2px;
-      bottom: 2px;
-      background-color: white;
-      transition: .3s;
+      height: 16px;
+      width: 16px;
+      left: 3px;
+      bottom: 3px;
+      background-color: #ffffff;
+      transition: .25s;
       border-radius: 50%;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
     }
 
     input:checked + .slider {
-      background-color: var(--accent-green);
+      background: var(--accent-gradient);
     }
 
     input:checked + .slider:before {
-      transform: translateX(20px);
+      transform: translateX(18px);
     }
 
     /* Range Slider */
-    .range-container {
-      margin-top: 8px;
+    .range-box {
+      margin-top: 10px;
+      background: rgba(15, 23, 42, 0.4);
+      padding: 10px;
+      border-radius: 8px;
     }
 
-    .range-header {
+    .range-row {
       display: flex;
       justify-content: space-between;
-      margin-bottom: 8px;
+      font-size: 11.5px;
+      font-weight: 600;
+      margin-bottom: 6px;
     }
 
-    .range-input {
+    .range-val {
+      color: #34d399;
+    }
+
+    .styled-range {
       -webkit-appearance: none;
       width: 100%;
-      height: 6px;
-      background: #e2e8f0;
+      height: 5px;
+      background: #334155;
       border-radius: 3px;
       outline: none;
     }
 
-    .range-input::-webkit-slider-thumb {
+    .styled-range::-webkit-slider-thumb {
       -webkit-appearance: none;
-      appearance: none;
       width: 16px;
       height: 16px;
       border-radius: 50%;
-      background: var(--accent-green);
+      background: #34d399;
       cursor: pointer;
-      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+      box-shadow: 0 0 10px #34d399;
     }
 
-    /* Model Status */
-    .engine-section {
-      background: #f8fafc;
-      border: 1px solid var(--border-color);
-      border-radius: 12px;
-      padding: 16px;
+    /* Platforms Chips */
+    .platforms-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      margin-top: 8px;
     }
 
-    .engine-header {
+    .platform-chip {
+      background: rgba(15, 23, 42, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px 4px;
       display: flex;
-      justify-content: space-between;
       align-items: center;
-      margin-bottom: 8px;
-    }
-
-    .engine-title {
-      font-size: 14px;
+      justify-content: center;
+      gap: 6px;
+      font-size: 11px;
       font-weight: 600;
-    }
-
-    .model-badge {
-      font-size: 10px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 12px;
-      text-transform: uppercase;
-    }
-
-    .badge-idle { background: #e2e8f0; color: #64748b; }
-    .badge-ready { background: #d1fae5; color: #059669; }
-    .badge-downloading { background: #e0f2fe; color: #0284c7; }
-    .badge-error { background: #fee2e2; color: #dc2626; }
-
-    .engine-desc {
-      font-size: 12px;
       color: var(--text-secondary);
-      margin-bottom: 12px;
-      line-height: 1.4;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.2s;
     }
 
-    .progress-bar-container {
-      width: 100%;
-      height: 6px;
-      background: #e2e8f0;
-      border-radius: 3px;
-      overflow: hidden;
-      margin-bottom: 12px;
+    .platform-chip.active {
+      background: rgba(16, 185, 129, 0.15);
+      border-color: rgba(52, 211, 153, 0.35);
+      color: #34d399;
+    }
+
+    .platform-chip input {
       display: none;
     }
 
-    .progress-bar {
-      width: 0%;
+    /* Engine Card */
+    .engine-status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 6px;
+    }
+
+    .badge-status {
+      font-size: 9.5px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .badge-idle { background: rgba(100, 116, 139, 0.2); color: #94a3b8; }
+    .badge-ready { background: rgba(52, 211, 153, 0.2); color: #34d399; }
+    .badge-downloading { background: rgba(6, 182, 212, 0.2); color: #38bdf8; }
+    .badge-error { background: rgba(239, 68, 68, 0.2); color: #f87171; }
+
+    .progress-bar-bg {
+      height: 5px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 3px;
+      overflow: hidden;
+      margin: 8px 0;
+      display: none;
+    }
+
+    .progress-bar-fill {
       height: 100%;
-      background: var(--accent-green);
+      width: 0%;
+      background: var(--accent-gradient);
       transition: width 0.3s;
     }
 
-    .primary-btn {
+    .btn-action {
       width: 100%;
-      background: var(--accent-green);
-      color: white;
+      background: var(--accent-gradient);
+      color: #052e16;
       border: none;
-      padding: 10px;
+      padding: 8px 12px;
       border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
+      font-size: 12px;
+      font-weight: 700;
       cursor: pointer;
-      transition: background 0.2s;
+      transition: transform 0.15s, opacity 0.15s;
     }
 
-    .primary-btn:hover {
-      background: var(--accent-green-hover);
-    }
-    
-    .primary-btn:disabled {
-      background: #94a3b8;
-      cursor: not-allowed;
+    .btn-action:hover {
+      opacity: 0.95;
+      transform: translateY(-1px);
     }
 
-    .footer {
-      text-align: center;
-      font-size: 11px;
+    .btn-action:disabled {
+      background: #334155;
       color: #94a3b8;
-      margin-top: 20px;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    /* Footer */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 14px;
+      padding-top: 10px;
+      border-top: 1px solid var(--card-border);
+      font-size: 10.5px;
+      color: var(--text-muted);
+    }
+
+    .reset-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 10.5px;
+      text-decoration: underline;
+      transition: color 0.2s;
+    }
+
+    .reset-btn:hover {
+      color: #f87171;
+    }
+
+    .footer-link {
+      color: var(--text-secondary);
+      text-decoration: none;
+    }
+
+    .footer-link:hover {
+      color: #34d399;
     }
   </style>
 </head>
 <body>
+  <!-- Header -->
   <header>
-    <div class="logo-container">🍃</div>
-    <h1 class="title">EcoPrompt</h1>
+    <div class="brand">
+      <div class="logo-badge">🌱</div>
+      <div>
+        <h1 class="brand-title">EcoPrompt</h1>
+        <div class="brand-tagline">Mindful Compute Shield</div>
+      </div>
+    </div>
+    <div class="shield-status-tag" id="status-tag">
+      <span class="pulse-dot"></span>
+      <span id="status-tag-text">Active</span>
+    </div>
   </header>
 
-  <!-- Impact Section -->
-  <div class="impact-section">
-    <h2 class="section-title">Your Eco Impact</h2>
+  <!-- Impact Metrics Card -->
+  <div class="glass-card">
+    <div class="section-header">
+      <span class="section-title">📊 Your Carbon Savings</span>
+      <span style="font-size: 10px; color: var(--text-muted);">Real-time</span>
+    </div>
+    
     <div class="stats-grid">
-      <div class="stat-item">
-        <span class="stat-value" id="stats-diverted">0</span>
-        <span class="stat-label">Queries Diverted</span>
+      <div class="stat-box">
+        <span class="stat-box-val" id="stats-diverted">0</span>
+        <span class="stat-box-lbl">Queries Diverted</span>
       </div>
-      <div class="stat-item">
-        <span class="stat-value" id="stats-tokens">0</span>
-        <span class="stat-label">Tokens Saved</span>
+      <div class="stat-box">
+        <span class="stat-box-val" id="stats-tokens">0</span>
+        <span class="stat-box-lbl">Tokens Saved</span>
       </div>
-      <div class="stat-item full-width">
+      
+      <div class="stat-featured">
         <div>
-          <span class="stat-label" style="display:block; margin-bottom: 4px;">Carbon Footprint Prevented</span>
-          <span class="stat-value green"><span id="stats-co2">0.0</span>g CO₂</span>
+          <div class="stat-box-lbl" style="color: var(--text-secondary); font-weight: 600;">CO₂ Emission Prevented</div>
+          <span class="stat-featured-val"><span id="stats-co2">0.00</span>g CO₂</span>
         </div>
-        <div style="font-size: 28px;">🌱</div>
+        <div style="font-size: 26px;">🌿</div>
       </div>
     </div>
 
-    <!-- Eco Savings Equivalents -->
-    <div style="margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--border-color); display: flex; justify-content: space-between; font-size: 11px; color: var(--text-secondary);">
-      <div title="LED light bulb operating hours saved">💡 <span id="equiv-bulb">0</span>h LED</div>
-      <div title="Kilometers of vehicle driving avoided">🚗 <span id="equiv-km">0</span>km driven</div>
-      <div title="Tree absorption equivalent">🌲 <span id="equiv-trees">0</span> trees/day</div>
+    <!-- Daily Eco Goal Bar -->
+    <div class="goal-container">
+      <div class="goal-header">
+        <span>Daily Saver Goal (5.0g)</span>
+        <span id="goal-percent-text">0%</span>
+      </div>
+      <div class="goal-bar-bg">
+        <div class="goal-bar-fill" id="goal-bar-fill"></div>
+      </div>
+    </div>
+
+    <!-- Equivalents -->
+    <div class="equiv-grid">
+      <div class="equiv-pill" title="LED bulb light operating hours saved">
+        💡 <span class="equiv-pill-num" id="equiv-bulb">0</span>h LED
+      </div>
+      <div class="equiv-pill" title="Vehicle kilometers avoided">
+        🚗 <span class="equiv-pill-num" id="equiv-km">0</span>km car
+      </div>
+      <div class="equiv-pill" title="Daily absorption equivalent of trees">
+        🌲 <span class="equiv-pill-num" id="equiv-trees">0</span> trees
+      </div>
     </div>
   </div>
 
-  <!-- Quick Web Surfing Section -->
-  <div class="impact-section" style="background: #f0fdf4; border-color: #bbf7d0;">
-    <h2 class="section-title" style="color: #166534;">🌲 Surf Web (Eco Friendly)</h2>
-    <div style="display: flex; gap: 6px; margin-bottom: 8px;">
-      <input type="text" id="popup-web-search-input" placeholder="Type a search query..." style="flex: 1; padding: 8px; border: 1px solid #86efac; border-radius: 6px; font-size: 12px; outline: none;">
-      <button id="popup-search-ecosia-btn" style="background: #16a34a; color: white; border: none; padding: 8px 12px; border-radius: 6px; font-size: 12px; font-weight: 600; cursor: pointer;">Ecosia</button>
+  <!-- Eco Search Hub -->
+  <div class="glass-card">
+    <div class="section-header">
+      <span class="section-title">🌲 Eco Search Engine</span>
+      <span style="font-size: 10px; color: #34d399; font-weight: 600;">99% lower energy</span>
     </div>
-    <div style="font-size: 10.5px; color: #15803d; line-height: 1.3;">
-      ⚡ Browsing the web uses 99% less energy than querying an AI model!
+    
+    <div class="search-engines-row" id="engine-tabs">
+      <button class="engine-tab active" data-engine="ecosia">Ecosia 🌲</button>
+      <button class="engine-tab" data-engine="ddg">DuckDuck 🦆</button>
+      <button class="engine-tab" data-engine="ocean">Ocean 🌊</button>
+      <button class="engine-tab" data-engine="google">Google 🔍</button>
+    </div>
+
+    <div class="search-input-group">
+      <input type="text" class="search-input" id="popup-search-input" placeholder="Search the web directly...">
+      <button class="search-btn" id="popup-search-btn">Go</button>
     </div>
   </div>
 
-  <!-- Controls -->
-  <div class="controls-section">
-    <div class="control-row">
-      <div class="control-text">
-        <div class="control-label">Enable EcoPrompt</div>
-        <div class="control-desc">Intercepts simple queries to save energy.</div>
+  <!-- Interactive Test Prompt Classifier -->
+  <div class="glass-card">
+    <div class="section-header">
+      <span class="section-title">🧪 Test Classifier</span>
+      <span style="font-size: 10px; color: var(--text-muted);">Try a prompt</span>
+    </div>
+
+    <div class="tester-container">
+      <div class="tester-row">
+        <input type="text" class="tester-input" id="test-prompt-input" placeholder="e.g. 45 * 12 or what is python">
+        <button class="tester-btn" id="test-prompt-btn">Analyze</button>
+      </div>
+      <div class="tester-result" id="test-prompt-result"></div>
+    </div>
+  </div>
+
+  <!-- Settings & Controls -->
+  <div class="glass-card">
+    <div class="section-header">
+      <span class="section-title">⚙️ Shield Controls</span>
+    </div>
+
+    <div class="control-item">
+      <div class="control-info">
+        <div class="control-title">Master EcoShield</div>
+        <div class="control-desc">Intercept simple prompts to prevent unnecessary LLM runs.</div>
       </div>
       <label class="switch">
         <input type="checkbox" id="toggle-shield" checked>
@@ -368,10 +759,10 @@
       </label>
     </div>
 
-    <div class="control-row">
-      <div class="control-text">
-        <div class="control-label">Smart AI Filtering</div>
-        <div class="control-desc">Uses local AI for better detection.</div>
+    <div class="control-item" style="margin-top: 10px;">
+      <div class="control-info">
+        <div class="control-title">Smart Local AI Filter</div>
+        <div class="control-desc">Uses client-side zero-shot ML & vector search.</div>
       </div>
       <label class="switch">
         <input type="checkbox" id="toggle-ml" checked>
@@ -379,65 +770,56 @@
       </label>
     </div>
 
-    <div class="range-container">
-      <div class="range-header">
-        <span class="control-label" style="font-size: 12px;">Filtering Strictness</span>
-        <span class="control-label" style="font-size: 12px; color: var(--accent-green);" id="sensitivity-display">0.45</span>
+    <!-- Sensitivity Slider -->
+    <div class="range-box">
+      <div class="range-row">
+        <span>Filtering Strictness</span>
+        <span class="range-val" id="sensitivity-display">0.45</span>
       </div>
-      <input type="range" class="range-input" id="sensitivity-slider" min="0.3" max="0.9" step="0.05" value="0.45">
+      <input type="range" class="styled-range" id="sensitivity-slider" min="0.3" max="0.85" step="0.05" value="0.45">
     </div>
 
-    <!-- AI Tools Restrictions -->
-    <div class="control-label" style="margin-top: 8px;">Active AI Platforms</div>
-    <div class="control-row" style="margin-bottom: 4px;">
-      <div class="control-text">
-        <div class="control-desc" style="font-weight: 500;">ChatGPT</div>
-      </div>
-      <label class="switch" style="transform: scale(0.8); transform-origin: right;">
+    <!-- Active Platforms -->
+    <div style="font-size: 11px; font-weight: 600; color: var(--text-secondary); margin-top: 12px;">Active Platforms</div>
+    <div class="platforms-grid">
+      <label class="platform-chip active" id="chip-chatgpt">
         <input type="checkbox" id="toggle-chatgpt" checked>
-        <span class="slider"></span>
+        <span>ChatGPT</span>
       </label>
-    </div>
-    <div class="control-row" style="margin-bottom: 4px;">
-      <div class="control-text">
-        <div class="control-desc" style="font-weight: 500;">Claude</div>
-      </div>
-      <label class="switch" style="transform: scale(0.8); transform-origin: right;">
+      <label class="platform-chip active" id="chip-claude">
         <input type="checkbox" id="toggle-claude" checked>
-        <span class="slider"></span>
+        <span>Claude</span>
       </label>
-    </div>
-    <div class="control-row">
-      <div class="control-text">
-        <div class="control-desc" style="font-weight: 500;">Gemini</div>
-      </div>
-      <label class="switch" style="transform: scale(0.8); transform-origin: right;">
+      <label class="platform-chip active" id="chip-gemini">
         <input type="checkbox" id="toggle-gemini" checked>
-        <span class="slider"></span>
+        <span>Gemini</span>
       </label>
     </div>
   </div>
 
-  <!-- Engine Status -->
-  <div class="engine-section">
-    <div class="engine-header">
-      <span class="engine-title">AI Engine</span>
-      <span class="model-badge badge-idle" id="model-badge">Idle</span>
+  <!-- Engine Card -->
+  <div class="glass-card">
+    <div class="engine-status-row">
+      <span class="section-title">🧠 Local AI Engine</span>
+      <span class="badge-status badge-idle" id="model-badge">Idle</span>
     </div>
-    <div class="engine-desc" id="model-details">
-      Downloads once (22MB). Keeps your data private by running entirely on your device.
+    <div style="font-size: 10.5px; color: var(--text-secondary); line-height: 1.3;" id="model-details">
+      Runs 100% locally in browser via WASM.
     </div>
-    
-    <div class="progress-bar-container" id="model-progress-container">
-      <div class="progress-bar" id="model-progress-bar"></div>
+
+    <div class="progress-bar-bg" id="model-progress-container">
+      <div class="progress-bar-fill" id="model-progress-bar"></div>
     </div>
-    
-    <button class="primary-btn" id="model-download-btn" style="display: none;">Download AI Engine</button>
+
+    <button class="btn-action" id="model-download-btn" style="margin-top: 8px; display: none;">Download AI Engine</button>
   </div>
 
-  <div class="footer">
-    EcoPrompt • Made for a greener web
-  </div>
+  <!-- Footer -->
+  <footer>
+    <button class="reset-btn" id="reset-stats-btn">Reset Stats</button>
+    <span>EcoPrompt v1.0 • MindfulAI</span>
+    <a href="https://github.com/Haryni/MindfulAI" target="_blank" class="footer-link">GitHub ↗</a>
+  </footer>
 
   <script src="popup.ts" type="module"></script>
 </body>
